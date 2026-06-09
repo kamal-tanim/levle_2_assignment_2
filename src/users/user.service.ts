@@ -1,17 +1,5 @@
 import { pool } from "../config/db";
-import bcrypt from "bcryptjs";
-
-const createUsers = async (payload: Record<string, unknown>) => {
-  const { name, email, password, phone, role } = payload;
-
-  const hashedPass = await bcrypt.hash(password as string, 10);
-
-  const result = await pool.query(
-    `INSERT INTO users(name , email, password, phone, role) VALUES($1, $2, $3, $4, $5) RETURNING *`,
-    [name, email, hashedPass, phone, role],
-  );
-  return result;
-};
+import bcrypt from "bcrypt";
 
 const getAllUsers = async () => {
   const result = await pool.query(`SELECT * FROM users`);
@@ -26,26 +14,48 @@ const getSingleUser = async (id: string) => {
   return result;
 };
 
-const updateUser = async (payload: Record<string, unknown>, id: string) => {
-  const { name, phone } = payload;
-  const result = await pool.query(
-    `UPDATE users SET name = $1, phone = $2 WHERE ID = $3 RETURNING id, name,email, phone, role`,
-    [name, phone, id],
-  );
+const updateUser = async (
+  payload: Record<string, unknown>,
+  id: string,
+  user: any,
+) => {
+  const { name, phone, password, role } = payload;
 
-  return result;
+  const owner = await pool.query(
+    `SELECT email, role FROM users WHERE id = $1`,
+    [id],
+  );
+  if (owner.rows.length === 0) {
+    throw new Error("not found the user");
+  }
+
+  const matchedEmail = owner.rows[0].email === user.email;
+  const matchedRole = owner.rows[0].role === user.role;
+
+  if (matchedEmail && matchedRole) {
+    const hashedPass = await bcrypt.hash(password as string, 10);
+    const result = await pool.query(
+      `UPDATE users SET name = COALESCE($1, name), phone = COALESCE($2, phone), password = COALESCE($3, password) WHERE id = $4 RETURNING id, name, email, phone, role`,
+      [name || null, phone || null, hashedPass || null, id],
+    );
+    return result;
+  }
+
+  if (user.role === "admin") {
+    const result = await pool.query(
+      `UPDATE users SET name = $1, phone = $2, role = $3 WHERE id = $4 RETURNING id, name, email, phone, role`,
+      [name, phone, role, id],
+    );
+    return result;
+  }
 };
 
 const deleteUser = async (id: string) => {
-  const result = await pool.query(
-    `DELETE FROM users WHERE id = $1`,
-    [id],
-  );
+  const result = await pool.query(`DELETE FROM users WHERE id = $1`, [id]);
   return result;
 };
 
 export const userService = {
-  createUsers,
   getAllUsers,
   getSingleUser,
   updateUser,
