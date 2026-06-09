@@ -29,22 +29,28 @@ const updateUser = async (
     throw new Error("not found the user");
   }
 
-  const matchedEmail = owner.rows[0].email === user.email;
-  const matchedRole = owner.rows[0].role === user.role;
+  const realOwner =
+    owner.rows[0].email === user.email && owner.rows[0].role === user.role;
+  const isAdmin = user.role === "admin";
 
-  if (matchedEmail && matchedRole) {
-    const hashedPass = await bcrypt.hash(password as string, 10);
+  if (isAdmin) {
     const result = await pool.query(
-      `UPDATE users SET name = COALESCE($1, name), phone = COALESCE($2, phone), password = COALESCE($3, password) WHERE id = $4 RETURNING id, name, email, phone, role`,
-      [name || null, phone || null, hashedPass || null, id],
+      `UPDATE users SET name = COALESCE($1, name), phone = COALESCE($2, phone), role = COALESCE($3, role) WHERE id = $4 RETURNING id, name, email, phone, role`,
+      [name || null, phone || null, role || null, id],
     );
     return result;
   }
 
-  if (user.role === "admin") {
+  if (realOwner) {
+    
+    let hashedPass = null;
+    if (password) {
+      hashedPass = await bcrypt.hash(password as string, 10);
+    }
+
     const result = await pool.query(
-      `UPDATE users SET name = $1, phone = $2, role = $3 WHERE id = $4 RETURNING id, name, email, phone, role`,
-      [name, phone, role, id],
+      `UPDATE users SET name = COALESCE($1, name), phone = COALESCE($2, phone), password = COALESCE($3, password) WHERE id = $4 RETURNING id, name, email, phone, role`,
+      [name || null, phone || null, hashedPass || null, id],
     );
     return result;
   }
