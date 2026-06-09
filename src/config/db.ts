@@ -25,7 +25,7 @@ const initDb = async () => {
     daily_rent_price NUMERIC(10, 2) NOT NULL CHECK (daily_rent_price > 0),
     availability_status VARCHAR(20) NOT NULL CHECK (availability_status IN ('available', 'booked'))
     )`);
-  
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS bookings(
     id SERIAL PRIMARY KEY,
@@ -34,8 +34,7 @@ const initDb = async () => {
     rent_start_date TIMESTAMP NOT NULL,
     rent_end_date TIMESTAMP NOT NULL CHECK (rent_end_date > rent_start_date),
     total_price DECIMAL(10, 2) NOT NULL CHECK (total_price > 0),
-    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'cancelled', 'returned')),
-    vehicle JSONB NOT NULL
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'cancelled', 'returned'))
     )`);
 };
 
