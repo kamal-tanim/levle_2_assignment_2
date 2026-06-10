@@ -2,15 +2,7 @@ import { pool } from "../config/db";
 import bcrypt from "bcrypt";
 
 const getAllUsers = async () => {
-  const result = await pool.query(`SELECT * FROM users`);
-  return result;
-};
-
-const getSingleUser = async (id: string) => {
-  const result = await pool.query(
-    `SELECT id, name, email, phone, role FROM users WHERE id = $1`,
-    [id],
-  );
+  const result = await pool.query(`SELECT id, name, email, phone, role FROM users`);
   return result;
 };
 
@@ -63,7 +55,6 @@ const deleteUser = async (id: string) => {
 
 export const userService = {
   getAllUsers,
-  getSingleUser,
   updateUser,
   deleteUser,
 };

@@ -14,6 +14,7 @@ const registerUsers = async (req: Request, res: Response) => {
     return res.status(409).json({
       success: false,
       message: err.message,
+      error: err
     });
   }
 };
@@ -25,13 +26,14 @@ const loginUser = async (req: Request, res: Response) => {
     const result = await authService.loginUser(email, password);
     res.status(200).json({
       success: true,
-      message: "User password matched",
+      message: "Login successful",
       data: result,
     });
   } catch (err: any) {
     res.status(404).json({
       success: false,
-      message: "wrong credentials",
+      message: "Wrong credentials",
+      error: err,
     });
   }
 };

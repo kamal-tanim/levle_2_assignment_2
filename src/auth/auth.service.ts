@@ -9,7 +9,7 @@ const registerUsers = async (payload: Record<string, unknown>) => {
   const hashedPass = await bcrypt.hash(password as string, 10);
 
   const result = await pool.query(
-    `INSERT INTO users(name , email, password, phone, role) VALUES($1, $2, $3, $4, $5) RETURNING *`,
+    `INSERT INTO users(name , email, password, phone, role) VALUES($1, $2, $3, $4, $5) RETURNING id, name, email, phone, role`,
     [name, email, hashedPass, phone, role],
   );
   return result;
@@ -38,7 +38,7 @@ const loginUser = async (email: string, password: string) => {
 
   const token = jwt.sign(jwtPayload, jwtSecret as string, { expiresIn: "7d" });
   // console.log(token);
-
+  delete user.rows[0].password;
   return { token, user: user.rows[0] };
 };
 

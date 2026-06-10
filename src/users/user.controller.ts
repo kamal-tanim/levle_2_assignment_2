@@ -14,6 +14,7 @@ const getAllUsers = async (req: Request, res: Response) => {
     return res.status(404).json({
       success: false,
       message: err.message,
+      error: err,
     });
   }
 };
@@ -32,12 +33,13 @@ const updateUser = async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       message: "User update successfully",
-      data: result.rows,
+      data: result!.rows,
     });
   } catch (err: any) {
     return res.status(404).json({
       success: false,
       message: err.message,
+      error: err,
     });
   }
 };
@@ -56,6 +58,7 @@ const deleteUser = async (req: Request, res: Response) => {
     return res.status(404).json({
       success: false,
       message: err.message,
+      error: err,
     });
   }
 };

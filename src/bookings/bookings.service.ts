@@ -31,6 +31,11 @@ const createBooking = async (payload: Record<string, unknown>) => {
     [customer_id, vehicle_id, rent_start_date, rent_end_date, totalRent],
   );
 
+  const updateVehicleStatus = await pool.query(
+    `UPDATE vehicle SET availability_status = 'booked' WHERE id = $1`,
+    [vehicle_id],
+  );
+
   return result;
 };
 
@@ -48,7 +53,7 @@ const getAllBookings = async (user: JwtPayload) => {
      total_price,
      status,
      (SELECT json_build_object('name', name, 'email', email) FROM users WHERE id = customer_id) AS customer,
-     (SELECT json_build_object('vehicle_name', vehicle_name, 'daily_rent_price', daily_rent_price) FROM vehicle WHERE id = vehicle_id) AS vehicle
+     (SELECT json_build_object('vehicle_name', vehicle_name, 'registration_number', registration_number) FROM vehicle WHERE id = vehicle_id) AS vehicle
     FROM bookings;`
     : `SELECT 
      id,
@@ -58,7 +63,7 @@ const getAllBookings = async (user: JwtPayload) => {
      TO_CHAR(rent_end_date, 'YYYY-MM-DD') AS rent_end_date,
      total_price,
      status,
-     (SELECT json_build_object('vehicle_name', vehicle_name, 'daily_rent_price', daily_rent_price) FROM vehicle WHERE id = vehicle_id) AS vehicle
+     (SELECT json_build_object('vehicle_name', vehicle_name,'registration_number', registration_number, 'daily_rent_price', daily_rent_price) FROM vehicle WHERE id = vehicle_id) AS vehicle
     FROM bookings WHERE customer_id = ${id};`;
 
   const result = await pool.query(query);
@@ -79,7 +84,16 @@ const updateBooking = async (
     ? `UPDATE bookings SET status = $1 WHERE id = $2 RETURNING *, (SELECT json_build_object('availability_status', availability_status) FROM vehicle WHERE id = bookings.vehicle_id) AS vehicle`
     : `UPDATE bookings SET status = $1 WHERE id = $2 RETURNING *`;
 
-  const result = await pool.query(query ,[status, id]);
+  const result = await pool.query(query, [status, id]);
+
+  if (status === "cancelled" || status === "returned") {
+    const updateVehicleStatus = await pool.query(
+      `UPDATE vehicle SET availability_status = 'available' WHERE id =$1`,
+      [result.rows[0].vehicle_id],
+    );
+  }
+     
+
   return result;
 };
 

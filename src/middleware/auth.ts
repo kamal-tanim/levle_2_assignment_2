@@ -36,7 +36,7 @@ const auth = (...roles: string[]) => {
       if (!roles.includes(decoded.role)) {
         res.status(403).json({
           success: false,
-          message: "you are not admin",
+          message: "You Are Not Allowed",
         });
         return;
       }

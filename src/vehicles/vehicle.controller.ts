@@ -7,8 +7,6 @@ const createVehicle = async (req: Request, res: Response) => {
   try {
     const result = await vehicleService.createVehicle(payload);
 
-    // console.log("");
-
     res.status(201).json({
       success: true,
       message: "Vehicles created successfully",
@@ -18,6 +16,7 @@ const createVehicle = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: err.message,
+      error: err,
     });
   }
 };
@@ -28,13 +27,17 @@ const getAllVehicle = async (req: Request, res: Response) => {
 
     res.status(200).json({
       success: true,
-      message: "Vehicles retrieved successfully",
+      message:
+        result.rows.length === 0
+          ? "No vehicles found"
+          : "Vehicles retrieved successfully",
       data: result.rows,
     });
   } catch (err: any) {
     res.status(500).json({
       success: false,
       message: err.message,
+      error: err,
     });
   }
 };
@@ -53,6 +56,7 @@ const getVehicleId = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: err.message,
+      error: err,
     });
   }
 };
@@ -72,6 +76,7 @@ const updateVehicle = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: err.message,
+      error: err,
     });
   }
 };
@@ -79,7 +84,7 @@ const updateVehicle = async (req: Request, res: Response) => {
 const deleteVehicle = async (req: Request, res: Response) => {
   const vehicleId = req.params.vehicleId;
   try {
-     await vehicleService.deleteVehicle(vehicleId as string);
+    await vehicleService.deleteVehicle(vehicleId as string);
 
     res.status(200).json({
       success: true,
@@ -89,6 +94,7 @@ const deleteVehicle = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: err.message,
+      error: err,
     });
   }
 };
@@ -98,5 +104,5 @@ export const vehicleController = {
   getAllVehicle,
   getVehicleId,
   updateVehicle,
-  deleteVehicle
+  deleteVehicle,
 };

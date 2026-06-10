@@ -49,7 +49,7 @@ const updateVehicle = async (payload: Record<string, unknown>, id: string) => {
   // const id = req.params.vehicleI
 
   const result = await pool.query(
-    `UPDATE vehicle SET vehicle_name=$1, type=$2, registration_number=$3, daily_rent_price=$4, availability_status=$5 WHERE id = $6 RETURNING *`,
+    `UPDATE vehicle SET vehicle_name = COALESCE($1, vehicle_name), type = COALESCE($2, type), registration_number = COALESCE($3, registration_number), daily_rent_price = COALESCE($4, daily_rent_price), availability_status = COALESCE($5, availability_status) WHERE id = $6 RETURNING *`,
     [
       vehicle_name,
       type,
